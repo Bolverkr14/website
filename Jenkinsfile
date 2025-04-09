@@ -22,8 +22,8 @@ stages{
             withCredentials([string(credentialsId: 'Bolverkr14', variable: 'bolverkr_pw')]) {
                 echo "print tag : $LOCAL_TAG"
                 sh 'docker login -u attilaisnotdead -p $bolverkr_pw'
-                sh 'docker build -t attilaisnotdead/yl_website:$LOCAL_TAG .'
-                sh 'docker push attilaisnotdead/yl_website:$LOCAL_TAG'
+                sh 'docker build -t attilaisnotdead/websiteyann:$LOCAL_TAG .'
+                sh 'docker push attilaisnotdead/websiteyann:$LOCAL_TAG'
             }
         }
     }
@@ -36,7 +36,7 @@ stages{
                 script {
                     sh 'sudo docker ps -a --filter "name=attilaisnotdead" --format "{{.ID}}" |sudo  xargs -r docker stop'
                     sh 'sudo docker ps -a --filter "name=attilaisnotdead" --format "{{.ID}}" |sudo  xargs -r docker rm' 
-                    sh 'docker run -d  -p 9999:80 --name attilaisnotdead$LOCAL_TAG attilaisnotdead/yl_website:$LOCAL_TAG'
+                    sh 'docker run -d  -p 9999:80 --name attilaisnotdead$LOCAL_TAG attilaisnotdead/websiteyann:$LOCAL_TAG'
                 }
            
         }
