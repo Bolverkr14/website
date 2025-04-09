@@ -1,21 +1,47 @@
 pipeline {
-    agent any
+	agent any
 
-    stages {
-        stage('Build') {
-            steps {
-                echo 'Building..'
-            }
+stages{
+ //------------------------------------------------
+  stage('Generate Local Tag') {
+    steps {
+        script {
+            def shortHash = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+            def timestamp = new Date().format('yyyyMMddHHmmss')
+            env.LOCAL_TAG = "v${timestamp}-${shortHash}"
+
+            echo "Generated Local Tag: ${env.LOCAL_TAG}"
         }
-        stage('Test') {
-            steps {
-                echo 'Testing..'
-            }
-        }
-        stage('Deploy') {
-            steps {
-                echo 'Deploying....'
+    }
+    }
+
+ //------------------------------------------------
+
+    stage('Docker Build & Push') {
+        steps {
+            withCredentials([string(credentialsId: 'Bolverkr14', variable: 'bolverkr_pw')]) {
+                echo "print tag : $LOCAL_TAG"
+                sh 'docker login -u attilaisnotdead -p $bolverkr_pw'
+                sh 'docker build -t attilaisnotdead/yl_website:$LOCAL_TAG .'
+                sh 'docker push attilaisnotdead/yl_website:$LOCAL_TAG'
             }
         }
     }
+
+ //------------------------------------------------
+
+    stage(' Deployment docker ') {
+        steps {
+           
+                script {
+                    sh 'sudo docker ps -a --filter "name=attilaisnotdead" --format "{{.ID}}" |sudo  xargs -r docker stop'
+                    sh 'sudo docker ps -a --filter "name=attilaisnotdead" --format "{{.ID}}" |sudo  xargs -r docker rm' 
+                    sh 'docker run -d  -p 9999:80 --name attilaisnotdead$LOCAL_TAG attilaisnotdead/yl_website:$LOCAL_TAG'
+                }
+           
+        }
+    }
+//------------------------------------------------
+}
+
 }
